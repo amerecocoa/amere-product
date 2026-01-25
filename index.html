@@ -6,202 +6,219 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 
 <style>
-  body {
-    font-family: Georgia, serif;
-    background: #f5f2ee;
-    padding: 24px;
-  }
-  .container {
-    max-width: 720px;
-    margin: auto;
-    background: #fff;
-    padding: 28px;
-    border: 1px solid #ddd;
-  }
-  h1, h2 {
-    text-align: center;
-    letter-spacing: 2px;
-  }
-  h2 {
-    margin-top: 32px;
-  }
-  label {
-    display: block;
-    margin-top: 12px;
-    font-size: 0.9em;
-  }
-  input, textarea {
-    width: 100%;
-    padding: 8px;
-    margin-top: 4px;
-    font-family: inherit;
-  }
-  .product {
-    display: grid;
-    grid-template-columns: 1fr 90px;
-    gap: 12px;
-    margin-top: 10px;
-    align-items: center;
-  }
-  .price {
-    font-size: 0.85em;
-    color: #666;
-  }
-  .line {
-    border-top: 1px solid #ccc;
-    margin: 24px 0;
-  }
-  .item {
-    margin: 6px 0;
-  }
-  .item span {
-    float: right;
-  }
-  .total {
-    font-weight: bold;
-    margin-top: 12px;
-  }
-  button {
-    margin-top: 20px;
-    padding: 10px 18px;
-    background: #000;
-    color: #fff;
-    border: none;
-    cursor: pointer;
-  }
-  button:hover { opacity: 0.85; }
+body {
+  font-family: Georgia, serif;
+  background: #f5f2ee;
+  padding: 20px;
+}
+.container {
+  max-width: 760px;
+  margin: auto;
+  background: #fff;
+  padding: 28px;
+  border: 1px solid #ddd;
+}
+h1,h2 { text-align:center; letter-spacing:2px; }
+label { display:block; margin-top:12px; font-size:0.9em; }
+input, textarea, select {
+  width:100%; padding:8px; margin-top:4px; font-family:inherit;
+}
+.note { font-size:0.85em; color:#666; }
+button {
+  margin-top:20px; padding:10px 18px;
+  background:#000; color:#fff; border:none; cursor:pointer;
+}
+button.secondary { background:#777; }
+button:hover { opacity:.85; }
+.hidden { display:none; }
 
-  @media (max-width: 480px) {
-    body { padding: 12px; }
-    .container { padding: 20px; }
-  }
+.product {
+  display:grid;
+  grid-template-columns:1fr 80px;
+  gap:12px;
+  margin-top:10px;
+  align-items:center;
+}
+.price { font-size:0.8em; color:#666; }
+
+.line { border-top:1px solid #ccc; margin:20px 0; }
+.item { margin:6px 0; }
+.item span { float:right; }
+.total { font-weight:bold; margin-top:12px; }
+
+@media(max-width:480px){
+  body{padding:10px;}
+  .container{padding:20px;}
+}
 </style>
 </head>
 
 <body>
 
-<div class="container" id="invoice">
+<div class="container" id="app">
 
-<h1>AMÈRE — ORDER</h1>
+<!-- PAGE 1 -->
+<section id="page1">
+<h1>AMÈRE — Customer Information</h1>
 
-<!-- ① CUSTOMER INFO -->
-<h2>Customer Information</h2>
+<label>Nama Customer</label>
+<input id="custName" placeholder="Nama lengkap">
+<div class="note">Harus diisi & minimal 2 kata</div>
 
-<label>Customer Name</label>
-<input id="customer" placeholder="Nama customer">
+<label>Username</label>
+<input id="custUser" placeholder="@amereatelier">
 
-<label>Contact / Username</label>
-<input id="contact" placeholder="@username / WhatsApp">
+<label>Apakah ingin menjadi Anonim?</label>
+<select id="anon">
+  <option value="no">Tidak</option>
+  <option value="yes">Ya</option>
+</select>
 
-<label>Special Request</label>
+<label>Nama Penerima</label>
+<input id="recvName" placeholder="Nama lengkap penerima">
+<div class="note">Harus diisi & minimal 2 kata</div>
+
+<label>Username Penerima</label>
+<input id="recvUser" placeholder="@username">
+
+<label>Tanggal Pemesanan</label>
+<input id="orderDate" disabled>
+
+<label>Tanggal Pengiriman</label>
+<input type="date" id="shipDate">
+
+<label>Catatan Tambahan (jika ada)</label>
 <textarea id="note" rows="3"></textarea>
 
-<!-- ② ORDER -->
-<h2>Order</h2>
+<button onclick="toPage2()">Lanjut ke Order</button>
+</section>
 
+<!-- PAGE 2 -->
+<section id="page2" class="hidden">
+<h1>AMÈRE — Order</h1>
 <div id="products"></div>
 
 <div class="line"></div>
+<button class="secondary" onclick="toPage1()">⬅ Back</button>
+<button onclick="toPage3()">Lihat Invoice ➡</button>
+</section>
 
-<!-- ③ INVOICE -->
-<h2>Invoice</h2>
+<!-- PAGE 3 -->
+<section id="page3" class="hidden">
+<h1>AMÈRE — INVOICE</h1>
 
 <p><strong>Invoice No:</strong> <span id="invoiceNo"></span></p>
 <p><strong>Date:</strong> <span id="datetime"></span></p>
 
-<div id="items"><em>Tidak ada item dipilih.</em></div>
+<div class="line"></div>
 
+<p><strong>Customer:</strong> <span id="invCustomer"></span></p>
+<p><strong>Recipient:</strong> <span id="invRecipient"></span></p>
+<p><strong>Delivery Date:</strong> <span id="invShip"></span></p>
+
+<div class="line"></div>
+
+<div id="items"><em>Tidak ada item dipilih.</em></div>
 <p class="total">Total: <span id="total">Rp 0</span></p>
 
-<p style="font-size:0.9em;color:#555;margin-top:16px;">
-ℹ️ Mohon screenshoot atau unduh invoice ini dan kirimkan ke DM AMÈRE agar pesanan dapat diproses.
-</p>
+<div class="line"></div>
+<p class="note" id="invNote"></p>
 
-<button onclick="downloadInvoice()">Download Invoice (PNG)</button>
+<button class="secondary" onclick="toPage2()">⬅ Revisi Order</button>
+<button onclick="downloadInvoice()">⬇ Download Invoice</button>
+</section>
 
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-// ===== PRODUK (TINGGAL TAMBAH DI SINI) =====
+// ===== PRODUCTS (MUDAH DITAMBAH) =====
 const products = [
-  { id: "dc70", name: "Dark Chocolate 70%", price: 85000 },
-  { id: "dc85", name: "Dark Chocolate 85%", price: 90000 },
-  { id: "milk", name: "Milk Chocolate", price: 70000 },
-  { id: "truffle", name: "Classic Cocoa-Dusted Truffles", price: 100000 },
+  {id:"dc70", name:"Dark Chocolate 70%", price:85000},
+  {id:"dc85", name:"Dark Chocolate 85%", price:95000},
+  {id:"milk", name:"Milk Chocolate", price:80000},
+  {id:"single", name:"Single-Origin Dark", price:110000},
+
+  {id:"ganache", name:"Dark Ganache (pcs)", price:22000},
+  {id:"hazel", name:"Hazelnut Praline (pcs)", price:24000},
+  {id:"caramel", name:"Salted Caramel (pcs)", price:23000},
+  {id:"box6", name:"Pralines Box (6 pcs)", price:130000},
+  {id:"box12", name:"Pralines Box (12 pcs)", price:250000},
+
+  {id:"cocoa", name:"Classic Cocoa-Dusted (pcs)", price:20000},
+  {id:"darktruf", name:"Dark Chocolate Truffle (pcs)", price:22000},
+  {id:"truf9", name:"Truffle Box (9 pcs)", price:175000},
+
+  {id:"plain", name:"Plain Dark (pcs)", price:18000},
+  {id:"nibs", name:"Dark with Nibs (pcs)", price:20000},
+  {id:"taste6", name:"Tasting Set (6 pcs)", price:105000},
+
+  {id:"chocgan", name:"Chocolate Ganache", price:28000},
+  {id:"chochaz", name:"Chocolate & Hazelnut", price:30000}
 ];
 
-// ===== RENDER PRODUK =====
-const productBox = document.getElementById("products");
-products.forEach(p => {
-  productBox.innerHTML += `
-    <div class="product">
-      <div>
-        ${p.name}
-        <div class="price">Rp ${p.price.toLocaleString("id-ID")} / pcs</div>
-      </div>
-      <input type="number" min="0" value="0" id="${p.id}" oninput="updateInvoice()">
-    </div>
-  `;
+// ===== INIT =====
+document.getElementById("orderDate").value =
+  new Date().toLocaleDateString("id-ID");
+
+const pad=n=>n.toString().padStart(2,"0");
+const now=new Date();
+const invoiceNo=`AME-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+document.getElementById("invoiceNo").innerText=invoiceNo;
+document.getElementById("datetime").innerText=
+  now.toLocaleDateString("id-ID")+" • "+now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+
+// Render products
+const box=document.getElementById("products");
+products.forEach(p=>{
+  box.innerHTML+=`
+  <div class="product">
+    <div>${p.name}<div class="price">Rp ${p.price.toLocaleString("id-ID")}</div></div>
+    <input type="number" min="0" max="5" value="0" id="${p.id}">
+  </div>`;
 });
 
-// ===== DATE, TIME, INVOICE NO =====
-const now = new Date();
-const pad = n => n.toString().padStart(2, "0");
+// ===== NAVIGATION & LOGIC =====
+function minTwoWords(v){ return v.trim().split(/\s+/).length>=2; }
 
-document.getElementById("datetime").innerText =
-  now.toLocaleDateString("id-ID") + " • " +
-  now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
-
-const invoiceNo =
-  "AME-" +
-  now.getFullYear() +
-  pad(now.getMonth()+1) +
-  pad(now.getDate()) + "-" +
-  pad(now.getHours()) +
-  pad(now.getMinutes()) +
-  pad(now.getSeconds());
-
-document.getElementById("invoiceNo").innerText = invoiceNo;
-
-// ===== UPDATE INVOICE =====
-function updateInvoice() {
-  let total = 0;
-  let html = "";
-
-  products.forEach(p => {
-    const qty = Number(document.getElementById(p.id).value);
-    if (qty > 0) {
-      const sub = qty * p.price;
-      total += sub;
-      html += `
-        <div class="item">
-          ${p.name} × ${qty}
-          <span>Rp ${sub.toLocaleString("id-ID")}</span>
-        </div>
-      `;
-    }
-  });
-
-  document.getElementById("items").innerHTML =
-    html || "<em>Tidak ada item dipilih.</em>";
-
-  document.getElementById("total").innerText =
-    "Rp " + total.toLocaleString("id-ID");
+function toPage2(){
+  if(!minTwoWords(custName.value)) return alert("Nama customer harus minimal 2 kata.");
+  if(!minTwoWords(recvName.value)) return alert("Nama penerima harus minimal 2 kata.");
+  page1.classList.add("hidden");
+  page2.classList.remove("hidden");
 }
 
-// ===== DOWNLOAD PNG =====
-function downloadInvoice() {
-  html2canvas(document.getElementById("invoice")).then(canvas => {
-    const link = document.createElement("a");
-    const name =
-      document.getElementById("customer").value
-        .replace(/\s+/g,"_")
-        .replace(/[^a-zA-Z0-9_-]/g,"") || "AMERE";
-    link.download = `${invoiceNo}-${name}.png`;
-    link.href = canvas.toDataURL("image/png");
-    link.click();
+function toPage1(){ page2.classList.add("hidden"); page1.classList.remove("hidden"); }
+
+function toPage3(){
+  let total=0, html="";
+  products.forEach(p=>{
+    const q=+document.getElementById(p.id).value;
+    if(q>0){
+      const sub=q*p.price;
+      total+=sub;
+      html+=`<div class="item">${p.name} × ${q}<span>Rp ${sub.toLocaleString("id-ID")}</span></div>`;
+    }
+  });
+  items.innerHTML=html||"<em>Tidak ada item dipilih.</em>";
+  totalEl.innerText="Rp "+total.toLocaleString("id-ID");
+
+  invCustomer.innerText=anon.value==="yes"?"Anonim":`${custName.value} (${custUser.value})`;
+  invRecipient.innerText=`${recvName.value} (${recvUser.value})`;
+  invShip.innerText=shipDate.value||"-";
+  invNote.innerText=note.value?`Catatan: ${note.value}`:"";
+
+  page2.classList.add("hidden");
+  page3.classList.remove("hidden");
+}
+
+function downloadInvoice(){
+  html2canvas(document.getElementById("page3")).then(c=>{
+    const a=document.createElement("a");
+    a.download=`${invoiceNo}.png`;
+    a.href=c.toDataURL("image/png");
+    a.click();
   });
 }
 </script>
