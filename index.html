@@ -55,7 +55,7 @@ button:hover { opacity:.85; }
 
 <body>
 
-<div class="container" id="app">
+<div class="container">
 
 <!-- PAGE 1 -->
 <section id="page1">
@@ -63,7 +63,7 @@ button:hover { opacity:.85; }
 
 <label>Nama Customer</label>
 <input id="custName" placeholder="Nama lengkap">
-<div class="note">Harus diisi & minimal 2 kata</div>
+<div class="note">Wajib diisi, minimal 2 kata</div>
 
 <label>Username</label>
 <input id="custUser" placeholder="@amereatelier">
@@ -76,7 +76,7 @@ button:hover { opacity:.85; }
 
 <label>Nama Penerima</label>
 <input id="recvName" placeholder="Nama lengkap penerima">
-<div class="note">Harus diisi & minimal 2 kata</div>
+<div class="note">Wajib diisi, minimal 2 kata</div>
 
 <label>Username Penerima</label>
 <input id="recvUser" placeholder="@username">
@@ -84,7 +84,7 @@ button:hover { opacity:.85; }
 <label>Tanggal Pemesanan</label>
 <input id="orderDate" disabled>
 
-<label>Tanggal Pengiriman</label>
+<label>Tanggal Pengiriman <strong>(WAJIB)</strong></label>
 <input type="date" id="shipDate">
 
 <label>Catatan Tambahan (jika ada)</label>
@@ -99,8 +99,8 @@ button:hover { opacity:.85; }
 <div id="products"></div>
 
 <div class="line"></div>
-<button class="secondary" onclick="toPage1()">⬅ Back</button>
-<button onclick="toPage3()">Lihat Invoice ➡</button>
+<button class="secondary" onclick="backToPage1()">⬅ Back</button>
+<button onclick="toInvoice()">Lihat Invoice ➡</button>
 </section>
 
 <!-- PAGE 3 -->
@@ -124,7 +124,7 @@ button:hover { opacity:.85; }
 <div class="line"></div>
 <p class="note" id="invNote"></p>
 
-<button class="secondary" onclick="toPage2()">⬅ Revisi Order</button>
+<button class="secondary" onclick="backToOrder()">⬅ Revisi Order</button>
 <button onclick="downloadInvoice()">⬇ Download Invoice</button>
 </section>
 
@@ -133,91 +133,103 @@ button:hover { opacity:.85; }
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-// ===== PRODUCTS (MUDAH DITAMBAH) =====
+// ===== PRODUCTS =====
 const products = [
   {id:"dc70", name:"Dark Chocolate 70%", price:85000},
   {id:"dc85", name:"Dark Chocolate 85%", price:95000},
   {id:"milk", name:"Milk Chocolate", price:80000},
   {id:"single", name:"Single-Origin Dark", price:110000},
-
   {id:"ganache", name:"Dark Ganache (pcs)", price:22000},
   {id:"hazel", name:"Hazelnut Praline (pcs)", price:24000},
   {id:"caramel", name:"Salted Caramel (pcs)", price:23000},
   {id:"box6", name:"Pralines Box (6 pcs)", price:130000},
   {id:"box12", name:"Pralines Box (12 pcs)", price:250000},
-
   {id:"cocoa", name:"Classic Cocoa-Dusted (pcs)", price:20000},
   {id:"darktruf", name:"Dark Chocolate Truffle (pcs)", price:22000},
   {id:"truf9", name:"Truffle Box (9 pcs)", price:175000},
-
   {id:"plain", name:"Plain Dark (pcs)", price:18000},
   {id:"nibs", name:"Dark with Nibs (pcs)", price:20000},
   {id:"taste6", name:"Tasting Set (6 pcs)", price:105000},
-
   {id:"chocgan", name:"Chocolate Ganache", price:28000},
-  {id:"chochaz", name:"Chocolate & Hazelnut", price:30000}
+  {id:"chochaz", name:"Chocolate & Hazelnut", price:30000},
 ];
 
 // ===== INIT =====
-document.getElementById("orderDate").value =
-  new Date().toLocaleDateString("id-ID");
+orderDate.value = new Date().toLocaleDateString("id-ID");
 
-const pad=n=>n.toString().padStart(2,"0");
-const now=new Date();
-const invoiceNo=`AME-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-document.getElementById("invoiceNo").innerText=invoiceNo;
-document.getElementById("datetime").innerText=
-  now.toLocaleDateString("id-ID")+" • "+now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
+const now = new Date();
+const pad = n => n.toString().padStart(2,"0");
+const invoiceNo = `AME-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+document.getElementById("invoiceNo").innerText = invoiceNo;
+document.getElementById("datetime").innerText =
+  now.toLocaleDateString("id-ID")+" • "+
+  now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
 
-// Render products
-const box=document.getElementById("products");
+// render products
+const prodBox = document.getElementById("products");
 products.forEach(p=>{
-  box.innerHTML+=`
-  <div class="product">
-    <div>${p.name}<div class="price">Rp ${p.price.toLocaleString("id-ID")}</div></div>
-    <input type="number" min="0" max="5" value="0" id="${p.id}">
-  </div>`;
+  prodBox.innerHTML += `
+    <div class="product">
+      <div>${p.name}<div class="price">Rp ${p.price.toLocaleString("id-ID")}</div></div>
+      <input type="number" min="0" max="5" value="0" id="${p.id}">
+    </div>`;
 });
 
-// ===== NAVIGATION & LOGIC =====
-function minTwoWords(v){ return v.trim().split(/\s+/).length>=2; }
+// ===== FUNCTIONS =====
+function minTwoWords(v){ return v.trim().split(/\s+/).length >= 2; }
 
 function toPage2(){
-  if(!minTwoWords(custName.value)) return alert("Nama customer harus minimal 2 kata.");
-  if(!minTwoWords(recvName.value)) return alert("Nama penerima harus minimal 2 kata.");
+  if(!minTwoWords(custName.value)) return alert("Nama customer minimal 2 kata.");
+  if(!minTwoWords(recvName.value)) return alert("Nama penerima minimal 2 kata.");
+  if(!shipDate.value) return alert("Tanggal pengiriman wajib diisi.");
+
   page1.classList.add("hidden");
   page2.classList.remove("hidden");
 }
 
-function toPage1(){ page2.classList.add("hidden"); page1.classList.remove("hidden"); }
+function backToPage1(){
+  page2.classList.add("hidden");
+  page1.classList.remove("hidden");
+}
 
-function toPage3(){
-  let total=0, html="";
+function toInvoice(){
+  let total = 0;
+  let html = "";
+
   products.forEach(p=>{
-    const q=+document.getElementById(p.id).value;
-    if(q>0){
-      const sub=q*p.price;
-      total+=sub;
-      html+=`<div class="item">${p.name} × ${q}<span>Rp ${sub.toLocaleString("id-ID")}</span></div>`;
+    const q = Number(document.getElementById(p.id).value);
+    if(q > 0){
+      const sub = q * p.price;
+      total += sub;
+      html += `<div class="item">${p.name} × ${q}<span>Rp ${sub.toLocaleString("id-ID")}</span></div>`;
     }
   });
-  items.innerHTML=html||"<em>Tidak ada item dipilih.</em>";
-  totalEl.innerText="Rp "+total.toLocaleString("id-ID");
 
-  invCustomer.innerText=anon.value==="yes"?"Anonim":`${custName.value} (${custUser.value})`;
-  invRecipient.innerText=`${recvName.value} (${recvUser.value})`;
-  invShip.innerText=shipDate.value||"-";
-  invNote.innerText=note.value?`Catatan: ${note.value}`:"";
+  document.getElementById("items").innerHTML =
+    html || "<em>Tidak ada item dipilih.</em>";
+  document.getElementById("total").innerText =
+    "Rp " + total.toLocaleString("id-ID");
+
+  invCustomer.innerText =
+    anon.value === "yes" ? "Anonim" : `${custName.value} (${custUser.value})`;
+  invRecipient.innerText = `${recvName.value} (${recvUser.value})`;
+  invShip.innerText = shipDate.value;
+  invNote.innerText = note.value ? "Catatan: " + note.value : "";
 
   page2.classList.add("hidden");
   page3.classList.remove("hidden");
 }
 
+function backToOrder(){
+  page3.classList.add("hidden");
+  page2.classList.remove("hidden");
+}
+
 function downloadInvoice(){
-  html2canvas(document.getElementById("page3")).then(c=>{
+  html2canvas(document.getElementById("page3")).then(canvas=>{
     const a=document.createElement("a");
-    a.download=`${invoiceNo}.png`;
-    a.href=c.toDataURL("image/png");
+    a.download = invoiceNo + ".png";
+    a.href = canvas.toDataURL("image/png");
     a.click();
   });
 }
