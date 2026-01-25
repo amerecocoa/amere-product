@@ -223,7 +223,36 @@ function toInvoice(){
       html += `<div class="item">${p.name} × ${q}<span>Rp ${sub.toLocaleString("id-ID")}</span></div>`;
     }
   });
+// ===== AUTO SAVE KE GOOGLE SHEET =====
+const invoiceNo = `AME-${new Date().toISOString().replace(/[-:T.Z]/g,"").slice(0,14)}`;
 
+const senderName = document.getElementById("senderName").value;
+const senderUser = document.getElementById("senderUsername").value;
+const receiverName = document.getElementById("receiverName").value;
+const receiverUser = document.getElementById("receiverUsername").value;
+const deliveryDate = document.getElementById("deliveryDate").value;
+const note = document.getElementById("note").value;
+
+let itemsSummary = [];
+products.forEach(p => {
+  const q = Number(document.getElementById(p.id).value);
+  if (q > 0) itemsSummary.push(`${p.name} x ${q}`);
+});
+
+fetch(SHEET_URL, {
+  method: "POST",
+  body: JSON.stringify({
+    invoiceNo: invoiceNo,
+    sender: `${senderName} (@${senderUser})`,
+    receiver: `${receiverName} (@${receiverUser})`,
+    deliveryDate: deliveryDate,
+    items: itemsSummary.join(", "),
+    total: `Rp ${total.toLocaleString("id-ID")}`,
+    invoiceLink: window.location.href + "#" + invoiceNo,
+    note: note || "-"
+  })
+});
+}
   document.getElementById("items").innerHTML =
     html || "<em>Tidak ada item dipilih.</em>";
   document.getElementById("total").innerText =
@@ -259,6 +288,9 @@ function downloadInvoice(){
   });
 }
 </script>
+  <script>
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwTIR9Tkt9UFn1mwbk-vfrXYoG-i_Srug95uOm3-iKu4AemBS88JUazUm-TEwodtODG/exec";
+
 
 </body>
 </html>
