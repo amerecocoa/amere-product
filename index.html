@@ -18,9 +18,16 @@ body{
   padding:28px;
   border:1px solid #ddd;
 }
-h1,h2{text-align:center;letter-spacing:2px;}
-label{display:block;margin-top:14px;font-size:.9em;}
-.req{font-weight:bold;}
+h1{
+  text-align:center;
+  letter-spacing:2px;
+}
+label{
+  display:block;
+  margin-top:14px;
+  font-size:.9em;
+}
+.req{font-weight:bold}
 input,textarea,select{
   width:100%;
   padding:8px;
@@ -35,9 +42,9 @@ button{
   border:none;
   cursor:pointer;
 }
-button.secondary{background:#777;}
-button:hover{opacity:.85;}
-.hidden{display:none;}
+button.secondary{background:#777}
+button:hover{opacity:.85}
+.hidden{display:none}
 
 .product{
   display:grid;
@@ -46,16 +53,23 @@ button:hover{opacity:.85;}
   margin-top:10px;
   align-items:center;
 }
-.price{font-size:.8em;color:#666;}
+.price{font-size:.8em;color:#666}
 
-.line{border-top:1px solid #ccc;margin:22px 0;}
-.item{margin:6px 0;}
-.item span{float:right;}
-.total{font-weight:bold;margin-top:12px;}
+.line{border-top:1px solid #ccc;margin:22px 0}
+
+.item{margin:6px 0}
+.item span{float:right}
+.total{font-weight:bold;margin-top:12px}
+
+.info{
+  font-size:.9em;
+  color:#444;
+  margin-top:14px;
+}
 
 @media(max-width:480px){
-  body{padding:10px;}
-  .container{padding:20px;}
+  body{padding:10px}
+  .container{padding:20px}
 }
 </style>
 </head>
@@ -87,9 +101,6 @@ button:hover{opacity:.85;}
 <label>Username Penerima</label>
 <input id="recvUser" placeholder="@username">
 
-<label>Tanggal Pemesanan</label>
-<input id="orderDate" disabled>
-
 <label>Tanggal Pengiriman <span class="req">*</span></label>
 <input type="date" id="shipDate">
 
@@ -113,8 +124,8 @@ button:hover{opacity:.85;}
 <section id="page3" class="hidden">
 <h1>AMÈRE — INVOICE</h1>
 
-<p><strong>Invoice No:</strong> <span id="invoiceNo"></span></p>
-<p><strong>Date:</strong> <span id="datetime"></span></p>
+<p><strong>Invoice No:</strong> <span id="invNo"></span></p>
+<p><strong>Date:</strong> <span id="invDate"></span></p>
 
 <div class="line"></div>
 
@@ -130,6 +141,11 @@ button:hover{opacity:.85;}
 <div class="line"></div>
 <p id="invNote"></p>
 
+<p class="info">
+ℹ️ Mohon kirimkan invoice ini ke DM AMÈRE.<br>
+Pastikan Anda menekan tombol <strong>download</strong> agar pesanan dapat segera diproses oleh tim kami.
+</p>
+
 <button class="secondary" onclick="backToOrder()">⬅ Revisi Order</button>
 <button onclick="downloadInvoice()">⬇ Download Invoice</button>
 </section>
@@ -139,48 +155,37 @@ button:hover{opacity:.85;}
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-// ===== ELEMENTS =====
+/* ================== CONFIG ================== */
+const SHEET_URL = "https://script.google.com/macros/s/AKfycbwTIR9Tkt9UFn1mwbk-vfrXYoG-i_Srug95uOm3-iKu4AemBS88JUazUm-TEwodtODG/exec";
+
+/* ================== ELEMENTS ================== */
 const page1 = document.getElementById("page1");
 const page2 = document.getElementById("page2");
 const page3 = document.getElementById("page3");
 const productsDiv = document.getElementById("products");
 
-// ===== PRODUCTS =====
+/* ================== PRODUCTS ================== */
 const products = [
-  {id:"dc70", name:"Dark Chocolate 70%", price:85000},
-  {id:"dc85", name:"Dark Chocolate 85%", price:95000},
-  {id:"milk", name:"Milk Chocolate", price:80000},
-  {id:"single", name:"Single-Origin Dark", price:110000},
-  {id:"ganache", name:"Dark Ganache (pcs)", price:22000},
-  {id:"hazel", name:"Hazelnut Praline (pcs)", price:24000},
-  {id:"caramel", name:"Salted Caramel (pcs)", price:23000},
-  {id:"box6", name:"Pralines Box (6 pcs)", price:130000},
-  {id:"box12", name:"Pralines Box (12 pcs)", price:250000},
-  {id:"cocoa", name:"Classic Cocoa-Dusted (pcs)", price:20000},
-  {id:"darktruf", name:"Dark Chocolate Truffle (pcs)", price:22000},
-  {id:"truf9", name:"Truffle Box (9 pcs)", price:175000},
-  {id:"plain", name:"Plain Dark (pcs)", price:18000},
-  {id:"nibs", name:"Dark with Nibs (pcs)", price:20000},
-  {id:"taste6", name:"Tasting Set (6 pcs)", price:105000},
-  {id:"chocgan", name:"Chocolate Ganache", price:28000},
-  {id:"chochaz", name:"Chocolate & Hazelnut", price:30000}
+  {id:"dc70",name:"Dark Chocolate 70%",price:85000},
+  {id:"dc85",name:"Dark Chocolate 85%",price:95000},
+  {id:"milk",name:"Milk Chocolate",price:80000},
+  {id:"single",name:"Single-Origin Dark",price:110000},
+  {id:"ganache",name:"Dark Ganache (pcs)",price:22000},
+  {id:"hazel",name:"Hazelnut Praline (pcs)",price:24000},
+  {id:"caramel",name:"Salted Caramel (pcs)",price:23000},
+  {id:"box6",name:"Pralines Box (6 pcs)",price:130000},
+  {id:"box12",name:"Pralines Box (12 pcs)",price:250000},
+  {id:"cocoa",name:"Classic Cocoa-Dusted (pcs)",price:20000},
+  {id:"darktruf",name:"Dark Chocolate Truffle (pcs)",price:22000},
+  {id:"truf9",name:"Truffle Box (9 pcs)",price:175000},
+  {id:"plain",name:"Plain Dark (pcs)",price:18000},
+  {id:"nibs",name:"Dark with Nibs (pcs)",price:20000},
+  {id:"taste6",name:"Tasting Set (6 pcs)",price:105000},
+  {id:"chocgan",name:"Chocolate Ganache",price:28000},
+  {id:"chochaz",name:"Chocolate & Hazelnut",price:30000}
 ];
 
-// ===== INIT =====
-document.getElementById("orderDate").value =
-  new Date().toLocaleDateString("id-ID");
-
-const now = new Date();
-const pad = n => n.toString().padStart(2,"0");
-const invoiceNo =
-  `AME-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-
-document.getElementById("invoiceNo").innerText = invoiceNo;
-document.getElementById("datetime").innerText =
-  now.toLocaleDateString("id-ID")+" • "+
-  now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
-
-// render menu
+/* ================== INIT ================== */
 products.forEach(p=>{
   productsDiv.innerHTML += `
     <div class="product">
@@ -189,7 +194,7 @@ products.forEach(p=>{
     </div>`;
 });
 
-// ===== FUNCTIONS =====
+/* ================== FUNCTIONS ================== */
 function minTwoWords(v){
   return v.trim().split(/\s+/).length >= 2;
 }
@@ -211,86 +216,76 @@ function backToPage1(){
   page1.classList.remove("hidden");
 }
 
+function backToOrder(){
+  page3.classList.add("hidden");
+  page2.classList.remove("hidden");
+}
+
 function toInvoice(){
   let total = 0;
   let html = "";
+  let itemsSummary = [];
 
   products.forEach(p=>{
     const q = Number(document.getElementById(p.id).value);
     if(q > 0){
       const sub = q * p.price;
       total += sub;
+      itemsSummary.push(`${p.name} x ${q}`);
       html += `<div class="item">${p.name} × ${q}<span>Rp ${sub.toLocaleString("id-ID")}</span></div>`;
     }
   });
-// ===== AUTO SAVE KE GOOGLE SHEET =====
-const invoiceNo = `AME-${new Date().toISOString().replace(/[-:T.Z]/g,"").slice(0,14)}`;
 
-const senderName = document.getElementById("senderName").value;
-const senderUser = document.getElementById("senderUsername").value;
-const receiverName = document.getElementById("receiverName").value;
-const receiverUser = document.getElementById("receiverUsername").value;
-const deliveryDate = document.getElementById("deliveryDate").value;
-const note = document.getElementById("note").value;
+  const invoiceNo = `AME-${Date.now()}`;
 
-let itemsSummary = [];
-products.forEach(p => {
-  const q = Number(document.getElementById(p.id).value);
-  if (q > 0) itemsSummary.push(`${p.name} x ${q}`);
-});
+  invNo.innerText = invoiceNo;
+  invDate.innerText = new Date().toLocaleString("id-ID");
 
-fetch(SHEET_URL, {
-  method: "POST",
-  body: JSON.stringify({
-    invoiceNo: invoiceNo,
-    sender: `${senderName} (@${senderUser})`,
-    receiver: `${receiverName} (@${receiverUser})`,
-    deliveryDate: deliveryDate,
-    items: itemsSummary.join(", "),
-    total: `Rp ${total.toLocaleString("id-ID")}`,
-    invoiceLink: window.location.href + "#" + invoiceNo,
-    note: note || "-"
-  })
-});
-}
   document.getElementById("items").innerHTML =
     html || "<em>Tidak ada item dipilih.</em>";
   document.getElementById("total").innerText =
     "Rp " + total.toLocaleString("id-ID");
 
-  document.getElementById("invSender").innerText =
+  invSender.innerText =
     anon.value === "yes"
       ? "Anonim"
       : `${custName.value} (${custUser.value})`;
 
-  document.getElementById("invReceiver").innerText =
+  invReceiver.innerText =
     `${recvName.value} (${recvUser.value})`;
 
-  document.getElementById("invShip").innerText = shipDate.value;
-  document.getElementById("invNote").innerText =
+  invShip.innerText = shipDate.value;
+  invNote.innerText =
     note.value ? "Catatan: " + note.value : "";
+
+  /* ===== AUTO SAVE TO GOOGLE SHEET ===== */
+  fetch(SHEET_URL,{
+    method:"POST",
+    body:JSON.stringify({
+      invoiceNo: invoiceNo,
+      sender: anon.value === "yes" ? "Anonim" : `${custName.value} (${custUser.value})`,
+      receiver: `${recvName.value} (${recvUser.value})`,
+      deliveryDate: shipDate.value,
+      items: itemsSummary.join(", "),
+      total: "Rp " + total.toLocaleString("id-ID"),
+      invoiceLink: window.location.href + "#" + invoiceNo,
+      note: note.value || "-"
+    })
+  });
 
   page2.classList.add("hidden");
   page3.classList.remove("hidden");
 }
 
-function backToOrder(){
-  page3.classList.add("hidden");
-  page2.classList.remove("hidden");
-}
-
 function downloadInvoice(){
-  html2canvas(document.getElementById("page3")).then(canvas=>{
+  html2canvas(page3).then(canvas=>{
     const a = document.createElement("a");
-    a.download = invoiceNo + ".png";
+    a.download = "invoice.png";
     a.href = canvas.toDataURL("image/png");
     a.click();
   });
 }
 </script>
-  <script>
-const SHEET_URL = "https://script.google.com/macros/s/AKfycbwTIR9Tkt9UFn1mwbk-vfrXYoG-i_Srug95uOm3-iKu4AemBS88JUazUm-TEwodtODG/exec";
-
 
 </body>
 </html>
