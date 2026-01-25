@@ -75,6 +75,13 @@ button:hover{opacity:.9}
 .price{font-size:12px;color:#666;margin-top:2px}
 .product input{text-align:center}
 
+.notice{
+  font-size:12px;
+  color:#666;
+  margin-bottom:10px;
+  font-style:italic;
+}
+
 .line{border-top:1px solid #ccc;margin:22px 0}
 
 .item{margin:6px 0;font-size:14px}
@@ -82,14 +89,7 @@ button:hover{opacity:.9}
 
 .total{font-weight:bold;margin-top:14px}
 
-.info{font-size:13px;color:#444;margin-top:12px}
-
-.notice{
-  font-size:12px;
-  color:#666;
-  margin-top:10px;
-  font-style:italic;
-}
+.info{font-size:13px;color:#444;margin-top:16px}
 
 @media(max-width:600px){
   body{padding:14px;font-size:14px}
@@ -139,7 +139,7 @@ button:hover{opacity:.9}
 <section id="page2" class="hidden">
 <h1>AMÈRE — Order</h1>
 
-<p class="notice">Maksimal pembelian <strong>5 item</strong> per produk.</p>
+<p class="notice">Maksimal pembelian <strong>5 pcs per produk</strong>.</p>
 
 <div id="products"></div>
 
@@ -171,7 +171,7 @@ button:hover{opacity:.9}
 
 <p class="info">
 ℹ️ Mohon kirimkan invoice ini ke DM AMÈRE.<br>
-Pastikan Anda menekan tombol <strong>download</strong> agar pesanan dapat segera diproses oleh tim kami.
+Pastikan Anda menekan tombol <strong>download</strong> agar pesanan dapat segera diproses.
 </p>
 
 <button class="secondary" onclick="backToOrder()">⬅ Revisi</button>
@@ -213,8 +213,13 @@ const products=[
 products.forEach(p=>{
   productsDiv.innerHTML+=`
   <div class="product">
-    <div>${p.name}<div class="price">Rp ${p.price.toLocaleString("id-ID")}</div></div>
-    <input type="number" min="0" value="0" id="${p.id}">
+    <div>
+      ${p.name}
+      <div class="price">Rp ${p.price.toLocaleString("id-ID")}</div>
+    </div>
+    <input type="number" min="0" max="5" value="0"
+      id="${p.id}"
+      oninput="if(this.value>5)this.value=5;if(this.value<0)this.value=0;">
   </div>`;
 });
 
@@ -245,11 +250,10 @@ function backToOrder(){
 let saved=false;
 
 function toInvoice(){
-  let total=0, html="", items=[], qtyTotal=0;
+  let total=0, html="", items=[];
 
   products.forEach(p=>{
     const q=+document.getElementById(p.id).value||0;
-    qtyTotal+=q;
     if(q>0){
       const sub=q*p.price;
       total+=sub;
@@ -258,13 +262,8 @@ function toInvoice(){
     }
   });
 
-  if(qtyTotal===0){
+  if(items.length===0){
     alert("Pilih minimal 1 produk.");
-    return;
-  }
-
-  if(qtyTotal>5){
-    alert("Maksimal pembelian adalah 5 item per produk.");
     return;
   }
 
