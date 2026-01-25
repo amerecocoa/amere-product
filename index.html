@@ -82,7 +82,14 @@ button:hover{opacity:.9}
 
 .total{font-weight:bold;margin-top:14px}
 
-.info{font-size:13px;color:#444;margin-top:16px}
+.info{font-size:13px;color:#444;margin-top:12px}
+
+.notice{
+  font-size:12px;
+  color:#666;
+  margin-top:10px;
+  font-style:italic;
+}
 
 @media(max-width:600px){
   body{padding:14px;font-size:14px}
@@ -131,6 +138,9 @@ button:hover{opacity:.9}
 <!-- PAGE 2 -->
 <section id="page2" class="hidden">
 <h1>AMÈRE — Order</h1>
+
+<p class="notice">Maksimal pembelian <strong>5 item</strong> per order.</p>
+
 <div id="products"></div>
 
 <div class="line"></div>
@@ -173,17 +183,14 @@ Pastikan Anda menekan tombol <strong>download</strong> agar pesanan dapat segera
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
 <script>
-/* ===== CONFIG ===== */
 const SHEET_URL = "https://script.google.com/macros/s/AKfycbwTIR9Tkt9UFn1mwbk-vfrXYoG-i_Srug95uOm3-iKu4AemBS88JUazUm-TEwodtODG/exec";
 
-/* ===== ELEMENTS ===== */
-const page1 = document.getElementById("page1");
-const page2 = document.getElementById("page2");
-const page3 = document.getElementById("page3");
-const productsDiv = document.getElementById("products");
+const page1=document.getElementById("page1");
+const page2=document.getElementById("page2");
+const page3=document.getElementById("page3");
+const productsDiv=document.getElementById("products");
 
-/* ===== PRODUCTS ===== */
-const products = [
+const products=[
   {id:"dc70",name:"Dark Chocolate 70%",price:85000},
   {id:"dc85",name:"Dark Chocolate 85%",price:95000},
   {id:"milk",name:"Milk Chocolate",price:80000},
@@ -203,12 +210,11 @@ const products = [
   {id:"chochaz",name:"Chocolate & Hazelnut",price:30000}
 ];
 
-/* ===== INIT ===== */
 products.forEach(p=>{
   productsDiv.innerHTML+=`
   <div class="product">
     <div>${p.name}<div class="price">Rp ${p.price.toLocaleString("id-ID")}</div></div>
-    <input type="number" min="0" max="5" value="0" id="${p.id}">
+    <input type="number" min="0" value="0" id="${p.id}">
   </div>`;
 });
 
@@ -239,10 +245,11 @@ function backToOrder(){
 let saved=false;
 
 function toInvoice(){
-  let total=0, html="", items=[];
+  let total=0, html="", items=[], qtyTotal=0;
 
   products.forEach(p=>{
-    const q=+document.getElementById(p.id).value;
+    const q=+document.getElementById(p.id).value||0;
+    qtyTotal+=q;
     if(q>0){
       const sub=q*p.price;
       total+=sub;
@@ -251,8 +258,13 @@ function toInvoice(){
     }
   });
 
-  if(items.length===0){
+  if(qtyTotal===0){
     alert("Pilih minimal 1 produk.");
+    return;
+  }
+
+  if(qtyTotal>5){
+    alert("Maksimal pembelian adalah 5 item per order.");
     return;
   }
 
