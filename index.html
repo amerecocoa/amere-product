@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<title>AMÈRE — Order & Invoice</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  body {
+    font-family: Georgia, serif;
+    background: #f5f2ee;
+    padding: 24px;
+  }
+  .container {
+    max-width: 720px;
+    margin: auto;
+    background: #fff;
+    padding: 28px;
+    border: 1px solid #ddd;
+  }
+  h1, h2 {
+    text-align: center;
+    letter-spacing: 2px;
+  }
+  h2 {
+    margin-top: 32px;
+  }
+  label {
+    display: block;
+    margin-top: 12px;
+    font-size: 0.9em;
+  }
+  input, textarea {
+    width: 100%;
+    padding: 8px;
+    margin-top: 4px;
+    font-family: inherit;
+  }
+  .product {
+    display: grid;
+    grid-template-columns: 1fr 90px;
+    gap: 12px;
+    margin-top: 10px;
+    align-items: center;
+  }
+  .price {
+    font-size: 0.85em;
+    color: #666;
+  }
+  .line {
+    border-top: 1px solid #ccc;
+    margin: 24px 0;
+  }
+  .item {
+    margin: 6px 0;
+  }
+  .item span {
+    float: right;
+  }
+  .total {
+    font-weight: bold;
+    margin-top: 12px;
+  }
+  button {
+    margin-top: 20px;
+    padding: 10px 18px;
+    background: #000;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+  }
+  button:hover { opacity: 0.85; }
+
+  @media (max-width: 480px) {
+    body { padding: 12px; }
+    .container { padding: 20px; }
+  }
+</style>
+</head>
+
+<body>
+
+<div class="container" id="invoice">
+
+<h1>AMÈRE — ORDER</h1>
+
+<!-- ① CUSTOMER INFO -->
+<h2>Customer Information</h2>
+
+<label>Customer Name</label>
+<input id="customer" placeholder="Nama customer">
+
+<label>Contact / Username</label>
+<input id="contact" placeholder="@username / WhatsApp">
+
+<label>Special Request</label>
+<textarea id="note" rows="3"></textarea>
+
+<!-- ② ORDER -->
+<h2>Order</h2>
+
+<div id="products"></div>
+
+<div class="line"></div>
+
+<!-- ③ INVOICE -->
+<h2>Invoice</h2>
+
+<p><strong>Invoice No:</strong> <span id="invoiceNo"></span></p>
+<p><strong>Date:</strong> <span id="datetime"></span></p>
+
+<div id="items"><em>Tidak ada item dipilih.</em></div>
+
+<p class="total">Total: <span id="total">Rp 0</span></p>
+
+<p style="font-size:0.9em;color:#555;margin-top:16px;">
+ℹ️ Mohon screenshoot atau unduh invoice ini dan kirimkan ke DM AMÈRE agar pesanan dapat diproses.
+</p>
+
+<button onclick="downloadInvoice()">Download Invoice (PNG)</button>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+<script>
+// ===== PRODUK (TINGGAL TAMBAH DI SINI) =====
+const products = [
+  { id: "dc70", name: "Dark Chocolate 70%", price: 85000 },
+  { id: "dc85", name: "Dark Chocolate 85%", price: 90000 },
+  { id: "milk", name: "Milk Chocolate", price: 70000 },
+  { id: "truffle", name: "Classic Cocoa-Dusted Truffles", price: 100000 },
+];
+
+// ===== RENDER PRODUK =====
+const productBox = document.getElementById("products");
+products.forEach(p => {
+  productBox.innerHTML += `
+    <div class="product">
+      <div>
+        ${p.name}
+        <div class="price">Rp ${p.price.toLocaleString("id-ID")} / pcs</div>
+      </div>
+      <input type="number" min="0" value="0" id="${p.id}" oninput="updateInvoice()">
+    </div>
+  `;
+});
+
+// ===== DATE, TIME, INVOICE NO =====
+const now = new Date();
+const pad = n => n.toString().padStart(2, "0");
+
+document.getElementById("datetime").innerText =
+  now.toLocaleDateString("id-ID") + " • " +
+  now.toLocaleTimeString("id-ID", { hour: "2-digit", minute: "2-digit" });
+
+const invoiceNo =
+  "AME-" +
+  now.getFullYear() +
+  pad(now.getMonth()+1) +
+  pad(now.getDate()) + "-" +
+  pad(now.getHours()) +
+  pad(now.getMinutes()) +
+  pad(now.getSeconds());
+
+document.getElementById("invoiceNo").innerText = invoiceNo;
+
+// ===== UPDATE INVOICE =====
+function updateInvoice() {
+  let total = 0;
+  let html = "";
+
+  products.forEach(p => {
+    const qty = Number(document.getElementById(p.id).value);
+    if (qty > 0) {
+      const sub = qty * p.price;
+      total += sub;
+      html += `
+        <div class="item">
+          ${p.name} × ${qty}
+          <span>Rp ${sub.toLocaleString("id-ID")}</span>
+        </div>
+      `;
+    }
+  });
+
+  document.getElementById("items").innerHTML =
+    html || "<em>Tidak ada item dipilih.</em>";
+
+  document.getElementById("total").innerText =
+    "Rp " + total.toLocaleString("id-ID");
+}
+
+// ===== DOWNLOAD PNG =====
+function downloadInvoice() {
+  html2canvas(document.getElementById("invoice")).then(canvas => {
+    const link = document.createElement("a");
+    const name =
+      document.getElementById("customer").value
+        .replace(/\s+/g,"_")
+        .replace(/[^a-zA-Z0-9_-]/g,"") || "AMERE";
+    link.download = `${invoiceNo}-${name}.png`;
+    link.href = canvas.toDataURL("image/png");
+    link.click();
+  });
+}
+</script>
+
+</body>
+</html>
