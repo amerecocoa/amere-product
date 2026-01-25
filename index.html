@@ -65,8 +65,9 @@ button:hover { opacity:.85; }
 <input id="custName" placeholder="Nama lengkap">
 <div class="note">Wajib diisi, minimal 2 kata</div>
 
-<label>Username</label>
+<label>Username Customer</label>
 <input id="custUser" placeholder="@amereatelier">
+<div class="note">Wajib diisi</div>
 
 <label>Apakah ingin menjadi Anonim?</label>
 <select id="anon">
@@ -80,6 +81,7 @@ button:hover { opacity:.85; }
 
 <label>Username Penerima</label>
 <input id="recvUser" placeholder="@username">
+<div class="note">Wajib diisi</div>
 
 <label>Tanggal Pemesanan</label>
 <input id="orderDate" disabled>
@@ -160,7 +162,8 @@ orderDate.value = new Date().toLocaleDateString("id-ID");
 const now = new Date();
 const pad = n => n.toString().padStart(2,"0");
 const invoiceNo = `AME-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-document.getElementById("invoiceNo").innerText = invoiceNo;
+invoiceNoEl = document.getElementById("invoiceNo");
+invoiceNoEl.innerText = invoiceNo;
 document.getElementById("datetime").innerText =
   now.toLocaleDateString("id-ID")+" • "+
   now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
@@ -175,12 +178,14 @@ products.forEach(p=>{
     </div>`;
 });
 
-// ===== FUNCTIONS =====
+// ===== VALIDATION & NAV =====
 function minTwoWords(v){ return v.trim().split(/\s+/).length >= 2; }
 
 function toPage2(){
-  if(!minTwoWords(custName.value)) return alert("Nama customer minimal 2 kata.");
-  if(!minTwoWords(recvName.value)) return alert("Nama penerima minimal 2 kata.");
+  if(!minTwoWords(custName.value)) return alert("Nama customer wajib minimal 2 kata.");
+  if(!custUser.value.trim()) return alert("Username customer wajib diisi.");
+  if(!minTwoWords(recvName.value)) return alert("Nama penerima wajib minimal 2 kata.");
+  if(!recvUser.value.trim()) return alert("Username penerima wajib diisi.");
   if(!shipDate.value) return alert("Tanggal pengiriman wajib diisi.");
 
   page1.classList.add("hidden");
@@ -211,7 +216,10 @@ function toInvoice(){
     "Rp " + total.toLocaleString("id-ID");
 
   invCustomer.innerText =
-    anon.value === "yes" ? "Anonim" : `${custName.value} (${custUser.value})`;
+    anon.value === "yes"
+      ? "Anonim"
+      : `${custName.value} (${custUser.value})`;
+
   invRecipient.innerText = `${recvName.value} (${recvUser.value})`;
   invShip.innerText = shipDate.value;
   invNote.innerText = note.value ? "Catatan: " + note.value : "";
