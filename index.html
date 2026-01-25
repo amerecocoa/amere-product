@@ -19,13 +19,14 @@ body {
   border: 1px solid #ddd;
 }
 h1,h2 { text-align:center; letter-spacing:2px; }
-label { display:block; margin-top:12px; font-size:0.9em; }
+label { display:block; margin-top:14px; font-size:0.9em; }
+.req { color:#000; }
 input, textarea, select {
   width:100%; padding:8px; margin-top:4px; font-family:inherit;
 }
-.note { font-size:0.85em; color:#666; }
+.note { font-size:0.8em; color:#666; }
 button {
-  margin-top:20px; padding:10px 18px;
+  margin-top:22px; padding:10px 18px;
   background:#000; color:#fff; border:none; cursor:pointer;
 }
 button.secondary { background:#777; }
@@ -41,7 +42,7 @@ button:hover { opacity:.85; }
 }
 .price { font-size:0.8em; color:#666; }
 
-.line { border-top:1px solid #ccc; margin:20px 0; }
+.line { border-top:1px solid #ccc; margin:22px 0; }
 .item { margin:6px 0; }
 .item span { float:right; }
 .total { font-weight:bold; margin-top:12px; }
@@ -61,32 +62,29 @@ button:hover { opacity:.85; }
 <section id="page1">
 <h1>AMÈRE — Customer Information</h1>
 
-<label>Nama Customer</label>
+<label>Nama Pengirim <span class="req">*</span></label>
 <input id="custName" placeholder="Nama lengkap">
-<div class="note">Wajib diisi, minimal 2 kata</div>
 
-<label>Username Customer</label>
+<label>Username Pengirim</label>
 <input id="custUser" placeholder="@amereatelier">
-<div class="note">Wajib diisi</div>
 
-<label>Apakah ingin menjadi Anonim?</label>
+<label>Anonim atau tidak <span class="req">*</span></label>
 <select id="anon">
+  <option value="">— Pilih —</option>
   <option value="no">Tidak</option>
   <option value="yes">Ya</option>
 </select>
 
-<label>Nama Penerima</label>
+<label>Nama Penerima <span class="req">*</span></label>
 <input id="recvName" placeholder="Nama lengkap penerima">
-<div class="note">Wajib diisi, minimal 2 kata</div>
 
 <label>Username Penerima</label>
 <input id="recvUser" placeholder="@username">
-<div class="note">Wajib diisi</div>
 
 <label>Tanggal Pemesanan</label>
 <input id="orderDate" disabled>
 
-<label>Tanggal Pengiriman <strong>(WAJIB)</strong></label>
+<label>Tanggal Pengiriman <span class="req">*</span></label>
 <input type="date" id="shipDate">
 
 <label>Catatan Tambahan (jika ada)</label>
@@ -114,9 +112,9 @@ button:hover { opacity:.85; }
 
 <div class="line"></div>
 
-<p><strong>Customer:</strong> <span id="invCustomer"></span></p>
-<p><strong>Recipient:</strong> <span id="invRecipient"></span></p>
-<p><strong>Delivery Date:</strong> <span id="invShip"></span></p>
+<p><strong>Pengirim:</strong> <span id="invSender"></span></p>
+<p><strong>Penerima:</strong> <span id="invReceiver"></span></p>
+<p><strong>Tanggal Kirim:</strong> <span id="invShip"></span></p>
 
 <div class="line"></div>
 
@@ -161,32 +159,34 @@ orderDate.value = new Date().toLocaleDateString("id-ID");
 
 const now = new Date();
 const pad = n => n.toString().padStart(2,"0");
-const invoiceNo = `AME-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
-invoiceNoEl = document.getElementById("invoiceNo");
+const invoiceNo =
+  `AME-${now.getFullYear()}${pad(now.getMonth()+1)}${pad(now.getDate())}-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`;
+
 invoiceNoEl.innerText = invoiceNo;
-document.getElementById("datetime").innerText =
+datetime.innerText =
   now.toLocaleDateString("id-ID")+" • "+
   now.toLocaleTimeString("id-ID",{hour:"2-digit",minute:"2-digit"});
 
 // render products
-const prodBox = document.getElementById("products");
 products.forEach(p=>{
-  prodBox.innerHTML += `
+  productsDiv = document.getElementById("products");
+  productsDiv.innerHTML += `
     <div class="product">
       <div>${p.name}<div class="price">Rp ${p.price.toLocaleString("id-ID")}</div></div>
       <input type="number" min="0" max="5" value="0" id="${p.id}">
     </div>`;
 });
 
-// ===== VALIDATION & NAV =====
+// ===== VALIDATION & FLOW =====
 function minTwoWords(v){ return v.trim().split(/\s+/).length >= 2; }
 
 function toPage2(){
-  if(!minTwoWords(custName.value)) return alert("Nama customer wajib minimal 2 kata.");
-  if(!custUser.value.trim()) return alert("Username customer wajib diisi.");
-  if(!minTwoWords(recvName.value)) return alert("Nama penerima wajib minimal 2 kata.");
-  if(!recvUser.value.trim()) return alert("Username penerima wajib diisi.");
-  if(!shipDate.value) return alert("Tanggal pengiriman wajib diisi.");
+  if(!minTwoWords(custName.value)) return alert("Nama pengirim minimal 2 kata.");
+  if(!custUser.value.trim()) return alert("Username pengirim harus diisi.");
+  if(!anon.value) return alert("Silakan pilih anonim atau tidak.");
+  if(!minTwoWords(recvName.value)) return alert("Nama penerima minimal 2 kata.");
+  if(!recvUser.value.trim()) return alert("Username penerima harus diisi.");
+  if(!shipDate.value) return alert("Tanggal pengiriman harus diisi.");
 
   page1.classList.add("hidden");
   page2.classList.remove("hidden");
@@ -210,17 +210,15 @@ function toInvoice(){
     }
   });
 
-  document.getElementById("items").innerHTML =
-    html || "<em>Tidak ada item dipilih.</em>";
-  document.getElementById("total").innerText =
-    "Rp " + total.toLocaleString("id-ID");
+  items.innerHTML = html || "<em>Tidak ada item dipilih.</em>";
+  total.innerText = "Rp " + total.toLocaleString("id-ID");
 
-  invCustomer.innerText =
+  invSender.innerText =
     anon.value === "yes"
       ? "Anonim"
       : `${custName.value} (${custUser.value})`;
 
-  invRecipient.innerText = `${recvName.value} (${recvUser.value})`;
+  invReceiver.innerText = `${recvName.value} (${recvUser.value})`;
   invShip.innerText = shipDate.value;
   invNote.innerText = note.value ? "Catatan: " + note.value : "";
 
@@ -235,7 +233,7 @@ function backToOrder(){
 
 function downloadInvoice(){
   html2canvas(document.getElementById("page3")).then(canvas=>{
-    const a=document.createElement("a");
+    const a = document.createElement("a");
     a.download = invoiceNo + ".png";
     a.href = canvas.toDataURL("image/png");
     a.click();
